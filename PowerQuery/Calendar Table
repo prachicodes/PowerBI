@@ -1,0 +1,20 @@
+let
+	 Source = #date(2010, 1, 1), 
+	 #"add dates until today" = List.Dates(Source, Number.From(DateTime.LocalNow())+365- Number.From(Source), #duration(1,0,0,0)), 
+	 #"Converted to Table" = Table.FromList(#"add dates until today", Splitter.SplitByNothing(), null, null, ExtraValues.Error), 
+	 #"Renamed Column Date" = Table.RenameColumns(#"Converted to Table",{{"Column1", "Date"}}), 
+	 #"Changed Type of Column Date" = Table.TransformColumnTypes(#"Renamed Column Date",{{"Date", type date}}),
+    #"Inserted Year" = Table.AddColumn(#"Changed Type of Column Date", "Year", each Date.Year([Date]), Int64.Type),
+    #"Inserted Month" = Table.AddColumn(#"Inserted Year", "Month", each Date.Month([Date]), Int64.Type),
+    #"Inserted Month Name" = Table.AddColumn(#"Inserted Month", "Month Name", each Date.MonthName([Date]), type text),
+    #"Inserted Quarter" = Table.AddColumn(#"Inserted Month Name", "Quarter", each Date.QuarterOfYear([Date]), Int64.Type),
+    #"Inserted Week of Year" = Table.AddColumn(#"Inserted Quarter", "Week of Year", each Date.WeekOfYear([Date]), Int64.Type),
+    #"Inserted Day" = Table.AddColumn(#"Inserted Week of Year", "Day", each Date.Day([Date]), Int64.Type),
+    #"Inserted Month1" = Table.AddColumn(#"Inserted Day", "Month.1", each Date.Month([Date]), Int64.Type),
+    #"Removed Columns" = Table.RemoveColumns(#"Inserted Month1",{"Month.1"}),
+    #"Inserted Month Name1" = Table.AddColumn(#"Removed Columns", "Month Name.1", each Date.MonthName([Date]), type text),
+    #"Extracted First Characters" = Table.TransformColumns(#"Inserted Month Name1", {{"Month Name.1", each Text.Start(_, 3), type text}}),
+    #"Renamed Columns" = Table.RenameColumns(#"Extracted First Characters",{{"Month Name.1", "Month Name Short"}, {"Month Name", "Month Name Long"}}),
+    #"Filtered Rows" = Table.SelectRows(#"Renamed Columns", each true)
+in
+    #"Filtered Rows"
